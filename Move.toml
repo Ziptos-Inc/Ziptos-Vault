@@ -1,0 +1,21 @@
+[package]
+name = "ZIPTOS"
+version = "1.0.0"
+authors = ["Avi"]
+upgrade_policy = "compatible"
+
+[addresses]
+coin_factory = "0x6e57ae098ab06ecc491d688a255b64b61dd52dbb58d2cce46e7def6013ffc2cd"
+fee_collector = "0xed577976c16475b10f2738fab060882a52b81aa176fe861a6f58540709bfb008"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dependencies.AptosToken]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-token"
+
+                
