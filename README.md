@@ -45,13 +45,7 @@ The move contracts in ziptos need aptos CLI to compile. Assuming the aptos cli i
             }
         ```
 
-
-
-
-<p align="center">
-<img width="360" src="images/zipdrip1.png">
-<img width="360" src="images/ziployer1.png">
-</p>
+## The Contracts are in audit by MoveBit
 
 
 
