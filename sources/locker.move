@@ -85,6 +85,14 @@ module coin_factory::locker{
         });   
     }
 
+     public entry fun set_price_new(account: &signer, new_fee_without_decimals: u64) acquires AccountCapability{
+        let cap = borrow_global<AccountCapability>(@coin_factory);
+        let resource_account = account::create_signer_with_capability(&cap.signer_cap);
+
+        assert!(signer::address_of(account) == @coin_factory, E_NO_PERMISSION);
+        config::set_v1(&resource_account, utf8(CONFIG_PRICE), &(new_fee_without_decimals as u64));
+    }  
+
     public entry fun set_price(account: &signer, new_fee_without_decimals: u8) acquires AccountCapability{
         let cap = borrow_global<AccountCapability>(@coin_factory);
         let resource_account = account::create_signer_with_capability(&cap.signer_cap);
