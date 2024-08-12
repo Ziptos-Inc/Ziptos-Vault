@@ -117,7 +117,7 @@ module coin_factory::vesting {
         assert!(vector::length(&target_addresses) == vector::length(&amounts), E_AMOUNTS_NE_ADDRESSES);
         assert!(vector::length(&amounts) == vector::length(&cliffs), E_AMOUNTS_NE_ADDRESSES);
         assert!(from_seconds >= timestamp::now_seconds(), E_INVALID_FROM);
-       // assert!(to_seconds > from_seconds + ONE_DAY_IN_SECONDS, E_INVALID_TO);
+        assert!(to_seconds > from_seconds + ONE_DAY_IN_SECONDS, E_INVALID_TO); // MIN 1 DAY
 
         let (total_amount, index) = (0, vector::length(&amounts));
         while(index > 0){
