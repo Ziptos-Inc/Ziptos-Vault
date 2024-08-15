@@ -226,37 +226,8 @@ module coin_factory::locker{
         lock_info.withdrawn_at = option::some(timestamp::now_seconds());
     }  
 
-
-    public entry fun offer_ownership(account: &signer, new_pending_owner: address, index: u64) 
-    acquires AccountCapability, FeeStore, InfoStore
-    {
-
-         let account_address = signer::address_of(account);
-
-        let cap = borrow_global<AccountCapability>(@coin_factory);
-        let resource_account = account::create_signer_with_capability(&cap.signer_cap);
-        let resource_address = signer::address_of(&resource_account);        
-        let store = &mut borrow_global_mut<InfoStore>(resource_address).store;
-        assert!(table::contains<u64, LockInfo>(store, index), E_NO_LOCK);
-
-        let lock_info = table::borrow_mut<u64, LockInfo>(store, index);
-        assert!(lock_info.owner == account_address, E_NO_OWNER);
-
-        // now lets change the ownership
-        // first store owner.
-        lock_info.pending_owner = option::some(new_pending_owner);
-
-        // lets take the fee
-        let fee_amount = get_price() / 10; //transfer takes 1/10 of the fee. 
-        let fee_store = borrow_global_mut<FeeStore>(resource_address);
-        // pay fee to collector.
-        let fee_coins = coin::withdraw<AptosCoin>(account, fee_amount);
-        coin::merge(&mut fee_store.reserve, fee_coins);  
-
-    }
-
-    public entry fun accept_ownership(account: &signer, index: u64)
-        acquires AccountCapability, OwnerLocks, InfoStore
+    public entry fun transfer_ownership<X>(account: &signer, new_owner: address, index: u64)
+        acquires AccountCapability, FeeStore, OwnerLocks, InfoStore
     {
         let account_address = signer::address_of(account);
 
@@ -269,15 +240,20 @@ module coin_factory::locker{
         let lock_info = table::borrow_mut<u64, LockInfo>(store, index);
         assert!(lock_info.owner == account_address, E_NO_OWNER);
 
-        let pending_owner = option::extract(&mut lock_info.pending_owner);
-        assert!(pending_owner == account_address, E_NOT_PENDING_OWNER);
+        // lets take the fee
+        let fee_amount = get_price() / 10; //transfer takes 1/10 of the fee. 
+        let fee_store = borrow_global_mut<FeeStore>(resource_address);
+        // pay fee to collector.
+        let fee_coins = coin::withdraw<AptosCoin>(account, fee_amount);
+        coin::merge(&mut fee_store.reserve, fee_coins);  
 
         // now lets change the ownership
-        lock_info.owner = account_address;
+        // first store owner.
+        lock_info.owner = new_owner;
 
-        // Update the OwnerLocks
+        // then the ownerLocks
         let locks = &mut borrow_global_mut<OwnerLocks>(resource_address).locks;
-        let owner_locks = table::borrow_mut(locks, pending_owner);
+        let owner_locks = table::borrow_mut(locks, account_address);
         let (i, length) = (0, vector::length(owner_locks));
         while(i < length){
             if(*vector::borrow(owner_locks, i) == index){
@@ -288,15 +264,16 @@ module coin_factory::locker{
             i = i + 1;
         };
 
-        if(table::contains(locks, account_address)){
+        if(table::contains(locks, new_owner)){
             // merge
-            let existing = table::borrow_mut(locks, account_address);
+            let existing = table::borrow_mut(locks, new_owner);
             vector::push_back(existing, index);
         } else {
            // add
-           table::add(locks, account_address, vector<u64>[index]); 
+           table::add(locks, new_owner, vector<u64>[index]); 
         }
     }
+
 
     #[test_only]
     use coin_factory::coin_helper::{USDC, create_admin_with_coins, mint};
